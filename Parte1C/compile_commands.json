@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1C/build",
+  "command": "/usr/bin/c++  -isystem /usr/include/opencv5 -isystem /opt/cuda/targets/x86_64-linux/include -isystem /opt/cuda/targets/x86_64-linux/include/cccl -O3 -march=native -mavx2 -DNDEBUG -std=gnu++17 -o CMakeFiles/practica4_1c.dir/main.cpp.o -c /home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1C/main.cpp",
+  "file": "/home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1C/main.cpp",
+  "output": "CMakeFiles/practica4_1c.dir/main.cpp.o"
+},
+{
+  "directory": "/home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1C/build",
+  "command": "/usr/bin/c++  -isystem /usr/include/opencv5 -isystem /opt/cuda/targets/x86_64-linux/include -isystem /opt/cuda/targets/x86_64-linux/include/cccl -O3 -march=native -mavx2 -DNDEBUG -std=gnu++17 -o CMakeFiles/benchmark_cpu.dir/benchmark_cpu.cpp.o -c /home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1C/benchmark_cpu.cpp",
+  "file": "/home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1C/benchmark_cpu.cpp",
+  "output": "CMakeFiles/benchmark_cpu.dir/benchmark_cpu.cpp.o"
+}
+]

@@ -1,0 +1,7 @@
+path: /home/jordy/Documents/Vision-Artificial/Practica4-1/Parte1A/dataset_traffic
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 3
+names: ['stop-sign', 'traffic-light', 'traffic-cone']

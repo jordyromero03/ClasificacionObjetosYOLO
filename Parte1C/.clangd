@@ -1,0 +1,7 @@
+CompileFlags:
+  Add:
+    - -I/usr/include/opencv5
+    - -I/opt/cuda/include
+    - -std=c++17
+  Remove:
+    - -march=native

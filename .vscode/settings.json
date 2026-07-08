@@ -1,0 +1,17 @@
+{
+  "cmake.sourceDirectory": "${workspaceFolder}/Parte1C",
+  "cmake.buildDirectory": "${workspaceFolder}/Parte1C/build",
+  "cmake.configureArgs": [
+    "-DCMAKE_BUILD_TYPE=Release"
+  ],
+  "cmake.environment": {
+    "PATH": "/opt/cuda/bin:/usr/bin:/bin"
+  },
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.includePath": [
+    "/usr/include/opencv5",
+    "/opt/cuda/include"
+  ],
+  "python.defaultInterpreterPath": "/usr/bin/python3",
+  "jupyter.notebookFileRoot": "${fileDirname}"
+}

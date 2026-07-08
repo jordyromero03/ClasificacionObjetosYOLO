@@ -1,0 +1,23 @@
+# Pesos de modelos grandes (descargar manualmente)
+*.pth
+
+# Video de prueba (grabar o descargar manualmente)
+*.mp4
+*.avi
+*.mkv
+
+# Artefactos de entrenamiento YOLO (se regeneran al entrenar)
+Parte1A/runs/
+
+# Binario compilado C++
+Parte1C/build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Archivos temporales
+*.tmp
+*.log
