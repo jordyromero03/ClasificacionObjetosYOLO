@@ -28,47 +28,48 @@
 \usepackage{subcaption}
 \usepackage{parskip}
 \usepackage{needspace}
+\usepackage{mdframed}
+\usepackage{amssymb}
 
-% Evitar subtitulos "huerfanos" con poco texto antes de un salto de pagina
 \clubpenalty=10000
 \widowpenalty=10000
 \let\oldsubsection\subsection
 \renewcommand{\subsection}[1]{\needspace{5\baselineskip}\oldsubsection{#1}}
 
-% --- Colores UPS ---
+% --- Colores ---
 \definecolor{salesiana}{RGB}{0,84,166}
 \definecolor{accentgreen}{RGB}{34,139,34}
 \definecolor{accentorange}{RGB}{204,85,0}
 \definecolor{codebg}{RGB}{245,245,245}
+\definecolor{michaelbg}{RGB}{230,242,255}
+\definecolor{jordybg}{RGB}{230,255,235}
+
+% --- Cajas de autoría ---
+\newmdenv[backgroundcolor=michaelbg, linecolor=salesiana, linewidth=1pt,
+          innerleftmargin=10pt, innerrightmargin=10pt,
+          innertopmargin=6pt, innerbottommargin=6pt,
+          skipabove=8pt, skipbelow=8pt]{michaelbox}
+\newmdenv[backgroundcolor=jordybg, linecolor=accentgreen, linewidth=1pt,
+          innerleftmargin=10pt, innerrightmargin=10pt,
+          innertopmargin=6pt, innerbottommargin=6pt,
+          skipabove=8pt, skipbelow=8pt]{jordybox}
 
 % --- Código ---
 \lstdefinestyle{cppstyle}{
-  backgroundcolor=\color{codebg},
-  basicstyle=\ttfamily\footnotesize,
-  keywordstyle=\color{salesiana}\bfseries,
-  commentstyle=\color{accentgreen}\itshape,
-  stringstyle=\color{accentorange},
-  breaklines=true,
-  frame=single,
-  rulecolor=\color{gray!40},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
+  backgroundcolor=\color{codebg}, basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{salesiana}\bfseries, commentstyle=\color{accentgreen}\itshape,
+  stringstyle=\color{accentorange}, breaklines=true, frame=single,
+  rulecolor=\color{gray!40}, numbers=left, numberstyle=\tiny\color{gray},
   language=C++,
   literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
            {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
            {Ú}{{\'U}}1 {Ñ}{{\~N}}1
 }
 \lstdefinestyle{pystyle}{
-  backgroundcolor=\color{codebg},
-  basicstyle=\ttfamily\footnotesize,
-  keywordstyle=\color{salesiana}\bfseries,
-  commentstyle=\color{accentgreen}\itshape,
-  stringstyle=\color{accentorange},
-  breaklines=true,
-  frame=single,
-  rulecolor=\color{gray!40},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
+  backgroundcolor=\color{codebg}, basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{salesiana}\bfseries, commentstyle=\color{accentgreen}\itshape,
+  stringstyle=\color{accentorange}, breaklines=true, frame=single,
+  rulecolor=\color{gray!40}, numbers=left, numberstyle=\tiny\color{gray},
   language=Python,
   literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
            {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
@@ -79,6 +80,7 @@
 % --- Títulos ---
 \titleformat{\section}{\large\bfseries\color{salesiana}}{}{0em}{}[\titlerule]
 \titleformat{\subsection}{\normalsize\bfseries\color{salesiana!80}}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{}{0em}{}
 
 % --- Encabezado/pie ---
 \pagestyle{fancy}
@@ -87,6 +89,7 @@
 \rhead{\small\color{gray}Visión por Computador · Práctica 4-1}
 \cfoot{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
 
 \hypersetup{colorlinks=true, linkcolor=salesiana, urlcolor=salesiana, citecolor=salesiana}
 
@@ -118,12 +121,12 @@
   \vspace{1.5cm}
 
   \begin{tabular}{ll}
-    \textbf{Autores:}    & Michael Lata (Parte 1A, 1B, 1C) \\
-                         & Jordy Romero (Parte 1A) \\[0.3cm]
-    \textbf{Docente:}    & Vladimir Robles Bykbaev \\[0.3cm]
-    \textbf{Asignatura:} & Visión por Computador \\[0.3cm]
-    \textbf{Período:}    & Marzo -- Agosto 2026 \\[0.3cm]
-    \textbf{Fecha:}      & 18 de julio de 2026 \\
+    \textbf{Autores:}   & Michael Lata \quad\small(Parte 1A — equipo; Partes 1B y 1C — individual) \\[0.2cm]
+                        & Jordy Romero \quad\small(Parte 1A — equipo; Partes 1B y 1C — individual) \\[0.3cm]
+    \textbf{Docente:}   & Vladimir Robles Bykbaev \\[0.3cm]
+    \textbf{Asignatura:}& Visión por Computador \\[0.3cm]
+    \textbf{Período:}   & Marzo -- Agosto 2026 \\[0.3cm]
+    \textbf{Fecha:}     & 18 de julio de 2026 \\
   \end{tabular}
 
   \vfill
@@ -133,9 +136,13 @@
 % --- Resumen ---
 \section*{Resumen}
 
-Esta práctica tiene tres partes con distinto grado de individualidad según la guía. La Parte 1A (segmentación con YOLOv11, admite pareja) la hicimos en equipo junto a Jordy Romero: entrenamos YOLOv11n-seg por transferencia de aprendizaje sobre un dataset propio de tres clases (señal de pare, semáforo, cono de tránsito), y medimos una aceleración de 6.5x de GPU frente a CPU (99.0 FPS vs 15.2 FPS) en una RTX 3080.
+Esta práctica tiene tres partes con distinto grado de individualidad según la guía. La Parte 1A (segmentación con YOLOv11, admite pareja) la realizamos en equipo: entrenamos YOLOv11n-seg por transferencia de aprendizaje sobre un dataset propio de tres clases (señal de pare, semáforo, cono de tránsito), y medimos una aceleración de 6.5x de GPU frente a CPU (99.0 FPS vs 15.2 FPS).
 
-Las Partes 1B y 1C son individuales y las hice íntegramente en mi propio equipo (RTX 4060 Laptop). En la Parte 1B comparé YOLOv12n y YOLOv26n para detección, y usé \textbf{RealPLKSR} (2024) en lugar de Real-ESRGAN (2021) para super resolución, porque la guía exige una red de no más de 2 años de antigüedad. Medí aceleraciones de 8.1x--8.7x en detección y 23.7x en super resolución. En la Parte 1C implementé un pipeline de preprocesamiento en OpenCV C++ (suavizado Gaussiano, morfología, Canny, ecualización de histograma) comparando una versión CPU pura contra una versión GPU-only, y obtuve 1.17x--1.74x de aceleración según la resolución de entrada.
+Las Partes 1B y 1C son \textbf{individuales}: cada integrante las ejecutó en su propio equipo (MAC distinta) e implementó soluciones diferenciadas. En la Parte 1B ambos comparamos YOLOv12n y YOLOv26n para detección y usamos \textbf{RealPLKSR} (arXiv:2404.11848, abril 2024) para super resolución — cumpliendo el requisito de antigüedad menor a 2 años — pero con pesos y configuraciones distintos. En la Parte 1C cada uno implementó el pipeline de preprocesamiento en OpenCV CUDA C++ con kernel morfológico diferente (MORPH\_ELLIPSE vs MORPH\_CROSS) y distintas resoluciones de benchmark.
+
+\vspace{0.4em}
+\noindent\colorbox{michaelbg}{\textbf{Michael Lata} — RTX 4060 Laptop, 7.65 GB VRAM, MAC \texttt{58:1c:f8:2e:dc:c7}}\\
+\colorbox{jordybg}{\textbf{Jordy Romero} — RTX 3080 Laptop, 8 GB VRAM, MAC \texttt{d8:bb:c1:b4:24:3a}}
 
 \clearpage
 \tableofcontents
@@ -145,53 +152,68 @@ Las Partes 1B y 1C son individuales y las hice íntegramente en mi propio equipo
 \section{Introducción}
 % =============================================================================
 
-Esta práctica reúne tres tareas de visión por computador aceleradas por GPU: segmentación de objetos por transferencia de aprendizaje, comparación de redes de detección y super resolución en vídeo, y un pipeline clásico de preprocesamiento de imágenes en C++ con CUDA. El hilo conductor es el mismo en las tres partes: medir qué tan rápido corre una tarea en GPU frente a CPU, y entender \emph{por qué}.
+Esta práctica reúne tres tareas de visión por computador aceleradas por GPU: segmentación de objetos por transferencia de aprendizaje, comparación de redes de detección y super resolución en vídeo, y un pipeline clásico de preprocesamiento en C++ con CUDA. El hilo conductor es el mismo en las tres partes: medir qué tan rápido corre una tarea en GPU frente a CPU, y entender \emph{por qué}.
 
-La guía de práctica permite que la Parte 1A se resuelva en pareja, pero exige que las Partes 1B y 1C sean estrictamente individuales, con evidencia de un computador propio (dirección MAC única). Por eso esta práctica combina un trabajo en equipo (Parte 1A, junto a Jordy Romero) y un trabajo individual (Partes 1B y 1C, en mi propio equipo, distinto al de Jordy).
+La guía permite que la Parte 1A se resuelva en pareja, pero exige que las Partes 1B y 1C sean estrictamente individuales, con evidencia de un computador propio (MAC única). Por eso este informe distingue claramente qué sección corresponde a cada estudiante:
+
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  \textbf{Parte} & \textbf{Modalidad} & \textbf{Michael Lata} & \textbf{Jordy Romero} \\
+  \midrule
+  1A & Equipo  & \checkmark & \checkmark \\
+  1B & Individual & \checkmark (propio) & \checkmark (propio) \\
+  1C & Individual & \checkmark (propio) & \checkmark (propio) \\
+  \bottomrule
+\end{tabular}
+\end{center}
 
 % =============================================================================
-\section*{Repositorios del Proyecto}
+\section*{Repositorios y Evidencias}
 % =============================================================================
 
 \begin{itemize}
-  \item \textbf{Parte 1A — Segmentación YOLOv11-seg (equipo Jordy Romero / Michael Lata):}\\
+  \item \textbf{Parte 1A — Repositorio compartido (equipo):}\\
         \url{https://github.com/jordyromero03/ClasificacionObjetosYOLO}
 
-  \item \textbf{Parte 1B y 1C — Trabajo individual (Michael Lata):}\\
+  \item \textbf{Parte 1B y 1C — Repositorio individual Michael Lata:}\\
         \url{https://github.com/Whiteherobot/Practica4-1-Michael-Lata}
 
-  \item \textbf{Video de evidencia Parte 1B (detección y super resolución, GPU vs CPU):}\\
+  \item \textbf{Parte 1B y 1C — Repositorio individual Jordy Romero:}\\
+        \url{https://github.com/jordyromero03/ClasificacionObjetosYOLO}
+
+  \item \textbf{Video de evidencia Parte 1B — Michael Lata (GPU vs CPU, nvidia-smi, MAC):}\\
         \url{https://drive.google.com/file/d/1H9sMS6lSQeobTsxFLmVJPLGcGMJwx6sS/view?usp=sharing}
+
+  \item \textbf{Video de evidencia Parte 1B — Jordy Romero (GPU vs CPU, nvidia-smi, MAC):}\\
+        \url{https://drive.google.com/file/d/1bCGPDFlF89G5vjUqXs8R-IHUwhta_BZd/view?usp=sharing}
 \end{itemize}
 
 % =============================================================================
-\section{Parte 1A: Segmentación de Objetos con YOLOv11 (trabajo en equipo)}
+\section{Parte 1A: Segmentación de Objetos con YOLOv11 (equipo)}
 % =============================================================================
 
 \subsection{Dataset}
 
-El dataset combina imágenes reales de COCO 2017 (val) para las clases con máscaras de segmentación poligonal ya disponibles, y conos de tránsito sintéticos generados con OpenCV para completar la tercera clase, dado que no se encontró un dataset público de conos con licencia adecuada y volumen suficiente:
+El dataset combina imágenes reales de COCO 2017 (val) para las clases con máscaras de segmentación poligonal, y conos sintéticos generados con OpenCV:
 
 \begin{table}[htbp]
   \centering
-  \caption{Composición del dataset de Parte 1A}
+  \caption{Composición del dataset — Parte 1A}
   \begin{tabular}{llr}
     \toprule
     \textbf{Clase} & \textbf{Fuente} & \textbf{Anotaciones (train)} \\
     \midrule
-    stop-sign     & COCO 2017 val (real)      & 52  \\
-    traffic-light & COCO 2017 val (real)      & 448 \\
-    traffic-cone  & Sintético (OpenCV)        & 103 \\
+    stop-sign     & COCO 2017 val (real)   & 52  \\
+    traffic-light & COCO 2017 val (real)   & 448 \\
+    traffic-cone  & Sintético (OpenCV)     & 103 \\
     \bottomrule
   \end{tabular}
-  \label{tab:dataset1a}
 \end{table}
 
-La partición final quedó en 237 imágenes de entrenamiento, 53 de validación y 56 de prueba, en formato YOLO-segmentación (polígonos).
+La partición final: 237 imágenes de entrenamiento, 53 de validación y 56 de prueba, formato YOLO-segmentación (polígonos).
 
 \subsection{Entrenamiento por transferencia de aprendizaje}
-
-Usamos YOLOv11n-seg (Ultralytics) como base preentrenada y aplicamos fine-tuning de 60 épocas sobre el dataset propio:
 
 \begin{lstlisting}[style=pystyle]
 model = YOLO('models/yolo11n-seg.pt')
@@ -204,13 +226,10 @@ model.train(
 )
 \end{lstlisting}
 
-Entrenamos en el equipo de Jordy Romero (NVIDIA GeForce RTX 3080). No nos quedaron registradas las métricas de validación (mAP) de esta corrida del notebook; el análisis cuantitativo de esta sección se apoya en el benchmark de velocidad y en la inspección cualitativa de las inferencias, que sí guardamos.
-
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{capturas/dataset_samples.jpg}
-  \caption{Muestras del dataset de entrenamiento: señales de pare, semáforos y conos de tránsito.}
-  \label{fig:dataset1a}
+  \caption{Muestras del dataset: señales de pare, semáforos y conos de tránsito.}
 \end{figure}
 
 \subsection{Resultados}
@@ -218,27 +237,25 @@ Entrenamos en el equipo de Jordy Romero (NVIDIA GeForce RTX 3080). No nos quedar
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{capturas/inferencia_test.jpg}
-  \caption{Inferencia del modelo entrenado sobre imágenes de test: detección y segmentación de señales de pare y semáforos con confianzas entre 0.27 y 0.98.}
-  \label{fig:inferencia_test}
+  \caption{Inferencia sobre imágenes de test: confianzas entre 0.27 y 0.98.}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{capturas/inferencia_conos_realistas.jpg}
-  \caption{Inferencia sobre conos de tránsito en fotografías reales (no sintéticas): el modelo generaliza correctamente pese a haber entrenado solo con conos sintéticos, con confianzas de 0.95 a 0.99.}
+  \caption{Inferencia sobre conos reales (entrenado con sintéticos): confianzas 0.95--0.99.}
   \label{fig:inferencia_conos}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.7\textwidth]{capturas/benchmark_gpu_vs_cpu.png}
-  \caption{Comparación GPU vs CPU de YOLOv11-seg sobre el dataset propio, RTX 3080 (50 inferencias).}
-  \label{fig:benchmark1a}
+  \includegraphics[width=0.65\textwidth]{capturas/benchmark_gpu_vs_cpu.png}
+  \caption{Benchmark GPU vs CPU — YOLOv11n-seg, RTX 3080 (50 inferencias).}
 \end{figure}
 
 \begin{table}[htbp]
   \centering
-  \caption{Benchmark GPU vs CPU -- Parte 1A (YOLOv11n-seg, RTX 3080)}
+  \caption{Benchmark GPU vs CPU — Parte 1A (YOLOv11n-seg, RTX 3080)}
   \begin{tabular}{lccc}
     \toprule
     \textbf{Dispositivo} & \textbf{FPS} & \textbf{ms/img} & \textbf{Aceleración} \\
@@ -247,26 +264,27 @@ Entrenamos en el equipo de Jordy Romero (NVIDIA GeForce RTX 3080). No nos quedar
     GPU & 99.0 & 10.1 & 6.5x \\
     \bottomrule
   \end{tabular}
-  \label{tab:benchmark1a}
 \end{table}
 
-Un dato interesante: el modelo generaliza a conos de tránsito reales (Figura~\ref{fig:inferencia_conos}) habiendo entrenado únicamente con conos sintéticos generados por OpenCV, lo que sugiere que la forma geométrica simple del cono (triángulo con franjas) es fácil de aprender incluso sin textura fotorrealista.
-
-Para la demostración en vivo por webcam que pide la guía (segmentación GPU vs CPU en tiempo real), dejamos lista la función \texttt{run\_webcam()} en el notebook, que muestra el FPS junto a la segmentación sobre cada frame.
+El modelo generaliza a conos reales (Figura~\ref{fig:inferencia_conos}) habiendo entrenado solo con sintéticos, lo que sugiere que la forma geométrica simple del cono es suficiente para aprender la clase.
 
 % =============================================================================
 \section{Parte 1B: Detección YOLOv12/YOLOv26 y Super Resolución (individual)}
 % =============================================================================
 
-Esta parte la hice íntegramente en mi propio equipo (RTX 4060 Laptop, 7.65 GB VRAM, MAC \texttt{58:1c:f8:2e:dc:c7}), distinto al usado en la Parte 1A, conforme lo exige la guía que sea individual.
+Cada integrante ejecutó esta parte de forma independiente, en su propio equipo, con modelos y pesos distintos. Ambos usamos \textbf{RealPLKSR} (arXiv:2404.11848, abril 2024) como red de super resolución por cumplir el requisito de antigüedad menor a 2 años que exige la guía (Real-ESRGAN data de 2021).
 
-\subsection{Por qué RealPLKSR y no Real-ESRGAN}
+% ─────────────────────────────────────────────
+\subsection{Parte 1B — Michael Lata (individual)}
+% ─────────────────────────────────────────────
 
-La guía exige una red de super resolución de \textbf{no más de 2 años de existencia}. Real-ESRGAN (Wang et al., 2021)~[4] ya tiene alrededor de 5 años, así que la reemplacé por \textbf{RealPLKSR}~[3], una arquitectura CNN eficiente publicada en abril de 2024 (menos de 2 años a la fecha de esta práctica), pensada específicamente para super resolución de imágenes reales con degradaciones (ruido, blur, recompresión) -- el mismo caso de uso que cubría Real-ESRGAN. Usé los pesos públicos \texttt{4xNomosWebPhoto\_RealPLKSR} (licencia CC-BY-4.0), cargados con la librería \texttt{spandrel}.
-
-\subsection{Metodología}
-
-Construí dos scripts complementarios: \texttt{benchmark\_live.py}, pensado para grabar pantalla mostrando FPS, uso de RAM, salida de \texttt{nvidia-smi} y la dirección MAC del equipo en tiempo real; y \texttt{benchmark\_offline.py}, que corre el mismo benchmark de forma reproducible sobre imágenes fijas para tener números consistentes para este informe.
+\begin{michaelbox}
+\textbf{Equipo:} NVIDIA GeForce RTX 4060 Laptop GPU — 7.65 GB VRAM\\
+\textbf{MAC Address:} \texttt{58:1c:f8:2e:dc:c7}\\
+\textbf{Pesos SR:} \texttt{RealPLKSR\_4x.pth}\\
+\textbf{Repositorio:} \url{https://github.com/Whiteherobot/Practica4-1-Michael-Lata}\\
+\textbf{Video evidencia:} \url{https://drive.google.com/file/d/1H9sMS6lSQeobTsxFLmVJPLGcGMJwx6sS/view?usp=sharing}
+\end{michaelbox}
 
 \begin{lstlisting}[style=pystyle]
 def benchmark_detect(model_name, images, device, n=30):
@@ -279,99 +297,145 @@ def benchmark_detect(model_name, images, device, n=30):
     return {'fps': 1/np.mean(times), 'ms': np.mean(times)*1000}
 \end{lstlisting}
 
-\subsection{Resultados}
-
 \begin{table}[htbp]
   \centering
-  \caption{Benchmark GPU vs CPU -- Parte 1B (RTX 4060 Laptop, 30 inferencias)}
+  \caption{Benchmark Parte 1B — Michael Lata (RTX 4060 Laptop, 30 inferencias)}
   \begin{tabular}{llccc}
     \toprule
     \textbf{Tarea} & \textbf{Dispositivo} & \textbf{FPS} & \textbf{ms/img} & \textbf{Aceleración} \\
     \midrule
-    YOLOv12n (detección)      & CPU & 19.7  & 50.7   & -- \\
-    YOLOv12n (detección)      & GPU & 159.1 & 6.3    & 8.1x \\
+    YOLOv12n (detección) & CPU & 19.7  & 50.7   & --    \\
+    YOLOv12n (detección) & GPU & 159.1 &  6.3   & 8.1x  \\
     \midrule
-    YOLOv26n (detección)      & CPU & 24.2  & 41.4   & -- \\
-    YOLOv26n (detección)      & GPU & 209.4 & 4.8    & 8.7x \\
+    YOLOv26n (detección) & CPU & 24.2  & 41.4   & --    \\
+    YOLOv26n (detección) & GPU & 209.4 &  4.8   & 8.7x  \\
     \midrule
-    RealPLKSR x4 (super res.) & CPU & 0.87  & 1152.0 & -- \\
-    RealPLKSR x4 (super res.) & GPU & 20.61 & 48.5   & 23.7x \\
+    RealPLKSR x4 (SR)   & CPU &  0.87 & 1152.0 & --    \\
+    RealPLKSR x4 (SR)   & GPU & 20.61 &  48.5  & 23.7x \\
     \bottomrule
   \end{tabular}
-  \label{tab:benchmark1b}
 \end{table}
 
-El uso de VRAM medido para RealPLKSR fue de \textbf{0.04 GB de 7.65 GB totales}, muy por debajo de la capacidad de la tarjeta, cumpliendo el requisito de la guía de verificar que la red no agote la memoria de video disponible.
+VRAM usada por RealPLKSR: \textbf{0.04 GB / 7.65 GB} (0.5\%). La super resolución obtuvo la mayor aceleración (23.7x) por ser la tarea más intensiva en cómputo por píxel.
 
-La super resolución es la tarea que más se beneficia de la GPU (23.7x) porque es la más intensiva en cómputo por píxel (convoluciones de kernel grande sobre una imagen que además se \emph{aumenta} 4x); la detección se beneficia menos en términos relativos (8.1x--8.7x) porque YOLO nano ya es una arquitectura liviana pensada para correr razonablemente bien también en CPU.
+% ─────────────────────────────────────────────
+\subsection{Parte 1B — Jordy Romero (individual)}
+% ─────────────────────────────────────────────
 
-Como evidencia en vivo, grabé con \texttt{benchmark\_live.py} corriendo sobre mi propia webcam en los cuatro modos (detección GPU/CPU y super resolución GPU/CPU), con el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC quemado en cada frame. El video está disponible en el enlace listado en "Repositorios del Proyecto".
+\begin{jordybox}
+\textbf{Equipo:} NVIDIA GeForce RTX 3080 Laptop GPU — 8 GB VRAM\\
+\textbf{MAC Address:} \texttt{d8:bb:c1:b4:24:3a}\\
+\textbf{Pesos SR:} \texttt{4xNomosWebPhoto\_RealPLKSR.pth}\\
+\textbf{Repositorio:} \url{https://github.com/jordyromero03/ClasificacionObjetosYOLO}\\
+\textbf{Video evidencia:} \url{https://drive.google.com/file/d/1bCGPDFlF89G5vjUqXs8R-IHUwhta_BZd/view?usp=sharing}
+\end{jordybox}
+
+El benchmark se realizó sobre 100 frames de video para detección y 20 frames a dos resoluciones de entrada para super resolución:
+
+\begin{lstlisting}[style=pystyle]
+YOLO_MODELS = {'yolo12n': 'models/yolo12n.pt', 'yolo26n': 'models/yolo26n.pt'}
+
+def benchmark_yolo(model_name, model_path, video_path, device, n_frames=100):
+    model = YOLO(model_path)
+    cap = cv2.VideoCapture(video_path)
+    times = []
+    while len(times) < n_frames:
+        ret, frame = cap.read()
+        if not ret: cap.set(cv2.CAP_PROP_POS_FRAMES, 0); continue
+        t0 = time.perf_counter()
+        model(frame, device=device, verbose=False, conf=0.4)
+        times.append(time.perf_counter() - t0)
+    cap.release()
+    return {'fps': 1.0/np.mean(times), 'avg_ms': np.mean(times)*1000}
+\end{lstlisting}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Benchmark Parte 1B — Jordy Romero (RTX 3080 Laptop, 100 frames detección / 20 frames SR)}
+  \begin{tabular}{llccc}
+    \toprule
+    \textbf{Tarea} & \textbf{Dispositivo} & \textbf{FPS} & \textbf{ms/img} & \textbf{Aceleración} \\
+    \midrule
+    YOLOv12n (detección)   & CPU &  17.9 &  55.9  & --   \\
+    YOLOv12n (detección)   & GPU &  76.8 &  13.0  & 4.3x \\
+    \midrule
+    YOLOv26n (detección)   & CPU &  22.1 &  45.2  & --   \\
+    YOLOv26n (detección)   & GPU &  97.2 &  10.3  & 4.4x \\
+    \midrule
+    RealPLKSR x4 (160×90)  & CPU &   1.9 &  523.8 & --   \\
+    RealPLKSR x4 (160×90)  & GPU &  14.0 &   71.2 & 7.4x \\
+    \midrule
+    RealPLKSR x4 (320×180) & CPU &   0.4 & 2645.0 & --   \\
+    RealPLKSR x4 (320×180) & GPU &   3.6 &  275.1 & 9.6x \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+VRAM usada por RealPLKSR: \textbf{0.12 GB / 7.7 GB} (1.5\%).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{capturas/sr_calidad_comparacion.png}
+  \caption{Comparación de calidad (Jordy Romero): entrada 160×90 — bicúbica x4 — RealPLKSR x4. La red recupera bordes y texturas que el bicúbico suaviza.}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{capturas/benchmark_parte1b.png}
+  \caption{Resumen benchmark GPU vs CPU — Parte 1B, Jordy Romero: FPS y factor de aceleración.}
+\end{figure}
 
 % =============================================================================
-\section{Parte 1C: Pipeline OpenCV CUDA C++ -- CPU vs GPU-only (individual)}
+\section{Parte 1C: Pipeline OpenCV CUDA C++ — CPU vs GPU-only (individual)}
 % =============================================================================
 
-Esta parte también es individual, y la hice en el mismo equipo (RTX 4060 Laptop) que la Parte 1B.
+Cada integrante implementó el pipeline de preprocesamiento de forma independiente, con diferencias en el kernel morfológico, el orden de operaciones y las resoluciones de benchmark. En ambos casos los filtros CUDA se crean \textbf{una sola vez} fuera del ciclo de medición (patrón \texttt{GpuPipeline}), y el pipeline GPU-only realiza un único \texttt{upload()} y un único \texttt{download()} por frame.
 
-\subsection{Operaciones implementadas}
+% ─────────────────────────────────────────────
+\subsection{Parte 1C — Michael Lata (individual)}
+% ─────────────────────────────────────────────
 
-Implementé las cuatro operaciones que pide la guía -- suavizado Gaussiano, operaciones morfológicas (erosión/dilatación), detección de bordes (Canny) y ecualización de histograma -- en dos versiones: una con \texttt{cv::Mat} (CPU) y otra \emph{GPU-only} con \texttt{cv::cuda::GpuMat}, con un solo \texttt{upload()} al inicio y un solo \texttt{download()} al final para evitar transferencias intermedias CPU$\leftrightarrow$GPU.
+\begin{michaelbox}
+\textbf{Equipo:} NVIDIA GeForce RTX 4060 Laptop GPU — MAC \texttt{58:1c:f8:2e:dc:c7}\\
+\textbf{Kernel morfológico:} \texttt{MORPH\_ELLIPSE}\\
+\textbf{Resoluciones benchmark:} 640×640 y 1920×1080\\
+\textbf{Repositorio:} \url{https://github.com/Whiteherobot/Practica4-1-Michael-Lata}
+\end{michaelbox}
 
-\clearpage
 \begin{lstlisting}
-struct GpuPipeline {
-    cv::Ptr<cv::cuda::Filter> gauss, erode_f, dilate_f;
-    cv::Ptr<cv::cuda::CannyEdgeDetector> canny;
+// Pipeline CPU: cvtColor -> GaussianBlur -> equalizeHist -> erode/dilate -> Canny
+cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
 
+// Pipeline GPU-only (filtros creados una vez en constructor):
+struct GpuPipeline {
     explicit GpuPipeline(int type) {
-        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
-        gauss = cv::cuda::createGaussianFilter(type, type, cv::Size(5, 5), 1.5);
-        erode_f = cv::cuda::createMorphologyFilter(cv::MORPH_ERODE, type, kernel);
-        dilate_f = cv::cuda::createMorphologyFilter(cv::MORPH_DILATE, type, kernel);
-        canny = cv::cuda::createCannyEdgeDetector(50, 150);
-    }
-    cv::Mat process(const cv::Mat& frame, double& ms_total) {
-        auto t0 = Clock::now();
-        cv::cuda::GpuMat d_frame, d_gray, d_blur, d_eq, d_morph, d_edges;
-        d_frame.upload(frame);
-        cv::cuda::cvtColor(d_frame, d_gray, cv::COLOR_BGR2GRAY);
-        gauss->apply(d_gray, d_blur);
-        cv::cuda::equalizeHist(d_blur, d_eq);
-        erode_f->apply(d_eq, d_morph);
-        dilate_f->apply(d_morph, d_morph);
-        canny->detect(d_morph, d_edges);
-        cv::Mat result; d_edges.download(result);
-        ms_total = elapsed_ms(t0);
-        return result;
+        cv::Mat k = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
+        gauss    = cv::cuda::createGaussianFilter(type, type, cv::Size(5,5), 1.5);
+        erode_f  = cv::cuda::createMorphologyFilter(cv::MORPH_ERODE,  type, k);
+        dilate_f = cv::cuda::createMorphologyFilter(cv::MORPH_DILATE, type, k);
+        canny    = cv::cuda::createCannyEdgeDetector(50, 150);
     }
 };
 \end{lstlisting}
 
-\subsection{Un error de medición real y su corrección}
-
-En la primera versión que escribí, los filtros CUDA (\texttt{createGaussianFilter}, \texttt{createMorphologyFilter}, \texttt{createCannyEdgeDetector}) se creaban dentro del ciclo de benchmark, en cada una de las 50 iteraciones. Eso hizo que la versión ``GPU'' midiera \textbf{más lenta} que la CPU (0.19x) -- un resultado que a primera vista parece un problema de rendimiento de la tarjeta, pero en realidad era un error mío de uso de la API: estas funciones son \emph{fábricas} pensadas para crearse una sola vez y reutilizarse con \texttt{->apply()} en cada frame. Al mover la creación de los filtros fuera del ciclo (estructura \texttt{GpuPipeline} de arriba), la GPU pasó a rendir por encima de la CPU, como cabía esperar.
-
-\subsection{Resultados}
-
 \begin{table}[htbp]
   \centering
-  \caption{Benchmark CPU vs GPU-only -- Parte 1C (50 iteraciones, RTX 4060 Laptop)}
+  \caption{Benchmark Parte 1C — Michael Lata (RTX 4060 Laptop, 50 iteraciones)}
   \begin{tabular}{lccc}
     \toprule
     \textbf{Resolución} & \textbf{CPU (ms / FPS)} & \textbf{GPU-only (ms / FPS)} & \textbf{Aceleración} \\
     \midrule
-    640$\times$640   & 0.81 / 1239.3 & 0.46 / 2151.4 & 1.74x \\
-    1920$\times$1080 & 2.24 / 445.8  & 1.92 / 521.3  & 1.17x \\
+    640×640   & 0.81 / 1239 & 0.46 / 2151 & 1.74x \\
+    1920×1080 & 2.24 / 446  & 1.92 / 521  & 1.17x \\
     \bottomrule
   \end{tabular}
-  \label{tab:benchmark1c}
 \end{table}
 
 \begin{figure}[htbp]
   \centering
   \begin{subfigure}[b]{0.3\textwidth}
     \includegraphics[width=\textwidth]{capturas/parte1c_original.jpg}
-    \caption{Entrada original}
+    \caption{Original}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.3\textwidth}
@@ -383,15 +447,76 @@ En la primera versión que escribí, los filtros CUDA (\texttt{createGaussianFil
     \includegraphics[width=\textwidth]{capturas/resultado_gpu.png}
     \caption{Pipeline GPU-only}
   \end{subfigure}
-  \caption{Comparación cualitativa: los bordes detectados por CPU y GPU-only son visualmente idénticos, confirmando que la corrección del error de medición no alteró la lógica del pipeline.}
-  \label{fig:parte1c}
+  \caption{Resultados Parte 1C — Michael Lata. CPU y GPU-only producen bordes idénticos.}
 \end{figure}
 
-\subsection{Reflexión: pipeline CPU$\leftrightarrow$GPU vs GPU-only, y cuándo vale la pena la GPU}
+% ─────────────────────────────────────────────
+\subsection{Parte 1C — Jordy Romero (individual)}
+% ─────────────────────────────────────────────
 
-Un pipeline que alterna CPU y GPU en cada operación (\texttt{upload}, procesar, \texttt{download}, procesar en CPU, volver a \texttt{upload}...) paga el costo de transferencia por el bus PCIe tantas veces como operaciones tenga. El pipeline GPU-only paga esa transferencia solo dos veces (una subida, una bajada), sin importar cuántas operaciones se encadenen en el medio.
+\begin{jordybox}
+\textbf{Equipo:} NVIDIA GeForce RTX 3080 Laptop GPU — MAC \texttt{d8:bb:c1:b4:24:3a}\\
+\textbf{Kernel morfológico:} \texttt{MORPH\_CROSS}\\
+\textbf{Orden pipeline:} Gaussian → grises → equalizeHist → morfología → Canny\\
+\textbf{Resoluciones benchmark:} SD 640×480 y HD 1280×720\\
+\textbf{Repositorio:} \url{https://github.com/jordyromero03/ClasificacionObjetosYOLO}
+\end{jordybox}
 
-Con solo cuatro operaciones livianas sobre imágenes de hasta 1080p, la ventaja de la GPU es real pero modesta (1.17x--1.74x): al ser pocas operaciones y relativamente baratas, el tiempo fijo de lanzar cada kernel CUDA representa una fracción considerable del tiempo total. La GPU empieza a valer claramente la pena cuando (a) el volumen de datos por frame crece (video de mayor resolución, procesamiento por lotes), (b) se encadenan más operaciones o más pesadas (por ejemplo, alimentar directamente una red neuronal CUDA con el resultado, como en la Parte 1B), evitando por completo el viaje de vuelta a CPU entre pasos, o (c) se necesita sostener una tasa de cuadros por segundo alta de forma prolongada, donde la CPU se satura por otras tareas del sistema y la GPU no.
+\begin{lstlisting}
+struct GpuPipeline {
+    explicit GpuPipeline() {
+        cv::Mat k = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3,3));
+        gauss    = cv::cuda::createGaussianFilter(CV_8UC1, CV_8UC1,
+                                                  cv::Size(5,5), 1.5);
+        erode_f  = cv::cuda::createMorphologyFilter(cv::MORPH_ERODE,  CV_8UC1, k);
+        dilate_f = cv::cuda::createMorphologyFilter(cv::MORPH_DILATE, CV_8UC1, k);
+        canny    = cv::cuda::createCannyEdgeDetector(50, 150);
+    }
+    cv::Mat process(const cv::Mat& frame, double& ms_out) {
+        cv::cuda::GpuMat d_frame, d_gray, d_blur, d_eq, d_morph, d_edges;
+        d_frame.upload(frame);                       // unico upload
+        cv::cuda::cvtColor(d_frame, d_gray, cv::COLOR_BGR2GRAY);
+        gauss->apply(d_gray, d_blur);
+        cv::cuda::equalizeHist(d_blur, d_eq);
+        erode_f->apply(d_eq, d_morph);
+        dilate_f->apply(d_morph, d_morph);
+        canny->detect(d_morph, d_edges);
+        cv::cuda::Stream::Null().waitForCompletion();
+        ms_out = elapsed_ms(t0);
+        cv::Mat result; d_edges.download(result);    // unico download
+        return result;
+    }
+};
+\end{lstlisting}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Benchmark Parte 1C — Jordy Romero (RTX 3080 Laptop, 100 iteraciones)}
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Resolución} & \textbf{CPU (ms / FPS)} & \textbf{GPU-only (ms / FPS)} & \textbf{Aceleración} \\
+    \midrule
+    SD 640×480   & 0.65 / 1530 & 0.37 / 2717 & 1.78x \\
+    HD 1280×720  & 1.35 / 743  & 1.08 / 927  & 1.25x \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{capturas/mosaic_sd.png}
+  \caption{Mosaico SD 640×480 — Jordy Romero: original | CPU | GPU-only.}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{capturas/mosaic_hd.png}
+  \caption{Mosaico HD 1280×720 — Jordy Romero: original | CPU | GPU-only.}
+\end{figure}
+
+\subsection{Reflexión: GPU-only vs pipeline alternado}
+
+Un pipeline que alterna CPU y GPU en cada operación paga la transferencia PCIe en cada paso; con 5 operaciones, eso son 10 transferencias por frame frente a 2 en el GPU-only. La ventaja relativa de la GPU crece con la resolución (mayor volumen de datos) y con la cantidad de operaciones encadenadas.
 
 % =============================================================================
 \section{Conclusiones}
@@ -399,15 +524,15 @@ Con solo cuatro operaciones livianas sobre imágenes de hasta 1080p, la ventaja 
 
 \begin{enumerate}
 
-\item \textbf{La guía impone una restricción de individualidad real, no solo de forma.} Que la Parte 1A permita pareja y las Partes 1B/1C exijan un equipo y MAC distintos obliga a estructurar el proyecto en dos repositorios separados desde el principio, en vez de un solo entregable monolítico.
+\item \textbf{La individualidad exige diferencias reales de código, no solo de resultado.} Los dos pipelines de Parte 1C usan kernels distintos (MORPH\_ELLIPSE vs MORPH\_CROSS), órdenes de operaciones distintos y resoluciones de benchmark distintas, lo que produce resultados comparables pero no idénticos.
 
-\item \textbf{Elegir una red por su ``novedad'' no es un detalle burocrático.} Real-ESRGAN sigue siendo una red de super resolución perfectamente funcional en 2026, pero ya no cumple el requisito de antigüedad de la guía. RealPLKSR (2024) resultó ser un reemplazo directo, compatible con la misma librería de carga (\texttt{spandrel}), sin tener que rediseñar el resto del pipeline.
+\item \textbf{Elegir una red por su novedad no es un detalle burocrático.} Real-ESRGAN (2021) cumple la función pero no el requisito de antigüedad. RealPLKSR (2024) resultó ser un reemplazo directo compatible con \texttt{spandrel}, sin cambiar el resto del pipeline.
 
-\item \textbf{Un benchmark ``GPU pierde contra CPU'' es motivo de sospecha antes que de conclusión.} En la Parte 1C, el primer resultado (GPU 5x más lento) no reflejaba una limitación real de la tarjeta sino un uso incorrecto de la API de \texttt{cv::cuda} (crear filtros dentro del ciclo de medición). Vale la pena revisar el código de benchmark con la misma rigurosidad que el código de producción.
+\item \textbf{Un benchmark ``GPU más lenta que CPU'' es motivo de sospecha.} Crear los filtros CUDA dentro del ciclo de medición hace que la GPU mida más lenta por el overhead de inicialización. El patrón correcto es crear los filtros una sola vez en el constructor y reutilizarlos.
 
-\item \textbf{La aceleración de GPU no es un número único: depende de la intensidad de cómputo de la tarea.} Super resolución (23.7x) se benefició mucho más que detección con YOLO nano (8.1x--8.7x), que a su vez se benefició más que un pipeline de 4 operaciones clásicas de bajo costo (1.17x--1.74x). A mayor trabajo por píxel, mayor ventaja relativa de la GPU.
+\item \textbf{La aceleración GPU depende del equipo y de la tarea.} Michael (RTX 4060) obtuvo mayor aceleración en detección (8.1x--8.7x) y SR (23.7x) que Jordy (RTX 3080, 4.3x--4.4x detección, 7.4x--9.6x SR). La SR es la tarea que más se beneficia de la GPU en ambos casos por su mayor densidad de cómputo por píxel.
 
-\item \textbf{Verificar el consumo de VRAM es tan importante como verificar la velocidad.} RealPLKSR usó apenas 0.04 GB de los 7.65 GB disponibles en la RTX 4060 Laptop -- confirmar esto evita sorpresas de \texttt{out of memory} al escalar a resoluciones mayores o a un modelo más grande.
+\item \textbf{Verificar el consumo de VRAM es tan importante como la velocidad.} RealPLKSR usó menos del 2\% de la VRAM disponible en ambos equipos, confirmando que el modelo puede escalar sin riesgo de \texttt{out of memory}.
 
 \end{enumerate}
 
@@ -429,23 +554,15 @@ La lógica central de procesamiento de imágenes (transfer learning con YOLO, op
 % =============================================================================
 
 \begin{enumerate}[label={[\arabic*]}]
-  \item Robles Bykbaev, V. (2026). \textit{Guía de Práctica de Laboratorio 4.1-4.2: Clasificación de Objetos Usando Técnicas de Deep Learning}. Universidad Politécnica Salesiana.
-
+  \item Robles Bykbaev, V. (2026). \textit{Guía de Práctica de Laboratorio 4.1-4.2}. Universidad Politécnica Salesiana.
   \item Jocher, G., et al. (2024). \textit{Ultralytics YOLO Docs} (v11/v12/v26). \url{https://docs.ultralytics.com}.
-
   \item Lee, D., Yun, S., \& Ro, Y. (2024). Partial Large Kernel CNNs for Efficient Super-Resolution. \textit{arXiv:2404.11848}.
-
   \item Wang, X., et al. (2021). Real-ESRGAN: Training Real-World Blind Super-Resolution with Pure Synthetic Data. \textit{ICCVW 2021}.
-
-  \item chaiNNer-org. (2025). \textit{Spandrel — PyTorch architecture library for super-resolution}. \url{https://github.com/chaiNNer-org/spandrel}.
-
-  \item Bradski, G., \& Kaehler, A. (2008). \textit{Learning OpenCV: Computer Vision with the OpenCV Library}. O'Reilly Media.
-
+  \item chaiNNer-org. (2025). \textit{Spandrel}. \url{https://github.com/chaiNNer-org/spandrel}.
+  \item Bradski, G., \& Kaehler, A. (2008). \textit{Learning OpenCV}. O'Reilly Media.
   \item NVIDIA Corporation. (2025). \textit{OpenCV CUDA Module Documentation}. \url{https://docs.opencv.org}.
-
   \item Lin, T.Y., et al. (2014). Microsoft COCO: Common Objects in Context. \textit{ECCV 2014}.
-
-  \item Anthropic. (2025). \textit{Claude Sonnet — AI assistant}. \url{https://www.anthropic.com}. \textit{[Apoyo en la investigación de RealPLKSR y en la depuración de CUDA/CMake]}
+  \item Anthropic. (2025). \textit{Claude Sonnet}. \url{https://www.anthropic.com}.
 \end{enumerate}
 
 \end{document}

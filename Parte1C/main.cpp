@@ -1,13 +1,18 @@
 /**
- * Práctica 4-1C: Preprocesamiento de Imágenes CPU vs GPU
+ * Práctica 4-1C: Preprocesamiento de Imágenes CPU vs GPU — OpenCV CUDA
  * Universidad Politécnica Salesiana — Visión por Computador
  * Estudiante: Jordy Romero
  *
- * Pipeline GPU-only con OpenCV CUDA:
- *   1. Filtro Gaussiano
- *   2. Operaciones morfológicas (Erosión / Dilatación)
- *   3. Detección de bordes (Canny)
- *   4. Ecualización de histograma
+ * Pipeline GPU-only con cv::cuda::GpuMat:
+ *   1. Suavizado Gaussiano
+ *   2. Conversión a escala de grises
+ *   3. Ecualización del histograma
+ *   4. Operaciones morfológicas (Erosión → Dilatación)
+ *   5. Detección de bordes (Canny)
+ *
+ * Uso:
+ *   ./practica4_1c imagen.jpg      — benchmark en imagen fija (100 runs x 2 resoluciones)
+ *   ./practica4_1c 0               — modo webcam en vivo (teclas: g=GPU, c=CPU, q=salir)
  */
 
 #include <opencv2/opencv.hpp>
@@ -15,215 +20,284 @@
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudaarithm.hpp>
 #include <chrono>
+#include <filesystem>
 #include <iostream>
-#include <vector>
 #include <numeric>
-#include <iomanip>
+#include <string>
+#include <vector>
 
-using namespace std;
-using namespace cv;
-namespace ch = chrono;
+namespace fs = std::filesystem;
+using Clock  = std::chrono::high_resolution_clock;
 
-// ── Utilidades de tiempo ──────────────────────────────────────────────────────
-struct Timer {
-    ch::high_resolution_clock::time_point t0;
-    void start() { t0 = ch::high_resolution_clock::now(); }
-    double ms() {
-        auto t1 = ch::high_resolution_clock::now();
-        return ch::duration<double, milli>(t1 - t0).count();
-    }
-};
+static double elapsed_ms(Clock::time_point t0) {
+    return std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+}
 
 // ── Pipeline CPU ──────────────────────────────────────────────────────────────
-double pipeline_cpu(const Mat& frame, Mat& result, int n_runs = 100) {
-    vector<double> times;
-    Timer t;
+// Orden: Gaussian → gray → equalizeHist → erode/dilate → Canny
+cv::Mat pipeline_cpu(const cv::Mat& frame, double& ms_out) {
+    auto t0 = Clock::now();
 
-    for (int i = 0; i < n_runs; i++) {
-        t.start();
+    cv::Mat gray, blurred, eq, morph, edges;
+    cv::GaussianBlur(frame, blurred, cv::Size(5, 5), 1.5);
+    cv::cvtColor(blurred, gray, cv::COLOR_BGR2GRAY);
+    cv::equalizeHist(gray, eq);
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
+    cv::erode(eq, morph, kernel);
+    cv::dilate(morph, morph, kernel);
+    cv::Canny(morph, edges, 50, 150);
 
-        Mat gray, blurred, morph_result, edges, equalized;
-
-        // 1. Filtro Gaussiano
-        GaussianBlur(frame, blurred, Size(5, 5), 1.5);
-
-        // 2. Convertir a grises para morfología y Canny
-        cvtColor(blurred, gray, COLOR_BGR2GRAY);
-
-        // 3. Operaciones morfológicas (Erosión + Dilatación = Opening)
-        Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-        erode(gray, morph_result, kernel);
-        dilate(morph_result, morph_result, kernel);
-
-        // 4. Detección de bordes Canny
-        Canny(morph_result, edges, 50, 150);
-
-        // 5. Ecualización del histograma
-        equalizeHist(gray, equalized);
-
-        times.push_back(t.ms());
-
-        if (i == n_runs - 1) {
-            // Combinar resultados para visualización
-            Mat edges_color, equalized_color;
-            cvtColor(edges, edges_color, COLOR_GRAY2BGR);
-            cvtColor(equalized, equalized_color, COLOR_GRAY2BGR);
-
-            Mat top, bot;
-            hconcat(frame, edges_color, top);
-            hconcat(equalized_color, Mat::zeros(frame.size(), CV_8UC3), bot);
-            vconcat(top, bot, result);
-        }
-    }
-
-    return accumulate(times.begin(), times.end(), 0.0) / times.size();
+    ms_out = elapsed_ms(t0);
+    cv::Mat out;
+    cv::cvtColor(edges, out, cv::COLOR_GRAY2BGR);
+    return out;
 }
 
 // ── Pipeline GPU-only ─────────────────────────────────────────────────────────
-double pipeline_gpu(const Mat& frame, Mat& result, int n_runs = 100) {
-    vector<double> times;
-    Timer t;
+// Un solo upload al inicio, todas las operaciones en GpuMat, un solo download al final.
+// Los filtros CUDA se crean UNA vez fuera del bucle de benchmark: crearlos dentro
+// del bucle paga el costo de planificación/allocación en cada iteración y destruye
+// la ventaja de la GPU (error clásico de medición).
+struct GpuPipeline {
+    cv::Ptr<cv::cuda::Filter>          gauss;
+    cv::Ptr<cv::cuda::Filter>          erode_f;
+    cv::Ptr<cv::cuda::Filter>          dilate_f;
+    cv::Ptr<cv::cuda::CannyEdgeDetector> canny;
 
-    // Crear filtros una sola vez fuera del loop (eficiente)
-    auto gaussian = cuda::createGaussianFilter(
-        CV_8UC3, CV_8UC3, Size(5,5), 1.5);
-    auto gaussian_gray = cuda::createGaussianFilter(
-        CV_8UC1, CV_8UC1, Size(5,5), 1.5);
-    auto canny = cuda::createCannyEdgeDetector(50, 150);
-    auto erode_filter = cuda::createMorphologyFilter(
-        MORPH_ERODE, CV_8UC1, getStructuringElement(MORPH_RECT, Size(3,3)));
-    auto dilate_filter = cuda::createMorphologyFilter(
-        MORPH_DILATE, CV_8UC1, getStructuringElement(MORPH_RECT, Size(3,3)));
-
-    cuda::GpuMat d_frame, d_blurred, d_gray, d_morph, d_edges, d_equalized;
-
-    for (int i = 0; i < n_runs; i++) {
-        t.start();
-
-        // CPU → GPU (solo una transferencia al inicio)
-        d_frame.upload(frame);
-
-        // 1. Filtro Gaussiano (GPU)
-        gaussian->apply(d_frame, d_blurred);
-
-        // 2. Convertir a grises (GPU)
-        cuda::cvtColor(d_blurred, d_gray, COLOR_BGR2GRAY);
-
-        // 3. Operaciones morfológicas (GPU)
-        erode_filter->apply(d_gray, d_morph);
-        dilate_filter->apply(d_morph, d_morph);
-
-        // 4. Detección de bordes Canny (GPU)
-        canny->detect(d_morph, d_edges);
-
-        // 5. Ecualización del histograma (GPU)
-        cuda::equalizeHist(d_gray, d_equalized);
-
-        // Sincronizar GPU antes de medir tiempo
-        cuda::Stream::Null().waitForCompletion();
-
-        times.push_back(t.ms());
-
-        if (i == n_runs - 1) {
-            // GPU → CPU solo al final (eficiente)
-            Mat edges_cpu, equalized_cpu;
-            d_edges.download(edges_cpu);
-            d_equalized.download(equalized_cpu);
-
-            Mat edges_color, equalized_color;
-            cvtColor(edges_cpu, edges_color, COLOR_GRAY2BGR);
-            cvtColor(equalized_cpu, equalized_color, COLOR_GRAY2BGR);
-
-            Mat top, bot;
-            hconcat(frame, edges_color, top);
-            hconcat(equalized_color, Mat::zeros(frame.size(), CV_8UC3), bot);
-            vconcat(top, bot, result);
-        }
+    explicit GpuPipeline() {
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
+        gauss   = cv::cuda::createGaussianFilter(CV_8UC1, CV_8UC1, cv::Size(5, 5), 1.5);
+        erode_f = cv::cuda::createMorphologyFilter(cv::MORPH_ERODE,  CV_8UC1, kernel);
+        dilate_f= cv::cuda::createMorphologyFilter(cv::MORPH_DILATE, CV_8UC1, kernel);
+        canny   = cv::cuda::createCannyEdgeDetector(50, 150);
     }
 
-    return accumulate(times.begin(), times.end(), 0.0) / times.size();
+    cv::Mat process(const cv::Mat& frame, double& ms_out) {
+        auto t0 = Clock::now();
+
+        cv::cuda::GpuMat d_frame, d_gray, d_blur, d_eq, d_morph, d_edges;
+
+        // CPU → GPU (único upload)
+        d_frame.upload(frame);
+
+        // 1. Convertir a grises (GPU)
+        cv::cuda::cvtColor(d_frame, d_gray, cv::COLOR_BGR2GRAY);
+
+        // 2. Suavizado Gaussiano (GPU)
+        gauss->apply(d_gray, d_blur);
+
+        // 3. Ecualización del histograma (GPU)
+        cv::cuda::equalizeHist(d_blur, d_eq);
+
+        // 4. Operaciones morfológicas (GPU)
+        erode_f->apply(d_eq, d_morph);
+        dilate_f->apply(d_morph, d_morph);
+
+        // 5. Detección de bordes Canny (GPU)
+        canny->detect(d_morph, d_edges);
+
+        // Sincronizar antes de medir tiempo
+        cv::cuda::Stream::Null().waitForCompletion();
+        ms_out = elapsed_ms(t0);
+
+        // GPU → CPU (único download)
+        cv::Mat result;
+        d_edges.download(result);
+        cv::Mat out;
+        cv::cvtColor(result, out, cv::COLOR_GRAY2BGR);
+        return out;
+    }
+};
+
+// ── Tabla de resultados ───────────────────────────────────────────────────────
+static void print_table(const std::string& label,
+                         double ms_cpu, double ms_gpu) {
+    std::cout << "\n" << std::string(54, '=') << "\n";
+    std::cout << "  " << label << "\n";
+    std::cout << std::string(54, '=') << "\n";
+    std::cout << std::left  << std::setw(26) << "Metrica"
+              << std::right << std::setw(12) << "CPU"
+              << std::right << std::setw(12) << "GPU-only" << "\n";
+    std::cout << std::string(54, '-') << "\n";
+    std::cout << std::left  << std::setw(26) << "Tiempo/frame (ms)"
+              << std::right << std::setw(12) << std::fixed << std::setprecision(2) << ms_cpu
+              << std::right << std::setw(12) << ms_gpu << "\n";
+    std::cout << std::left  << std::setw(26) << "FPS equivalente"
+              << std::right << std::setw(12) << std::setprecision(1) << 1000.0 / ms_cpu
+              << std::right << std::setw(12) << 1000.0 / ms_gpu << "\n";
+    std::cout << std::string(54, '-') << "\n";
+    std::cout << std::left  << std::setw(26) << "Aceleracion GPU/CPU"
+              << std::right << std::setw(24) << std::setprecision(2) << ms_cpu / ms_gpu << "x\n";
+    std::cout << std::string(54, '=') << "\n";
 }
 
-// ── Mostrar resultados en consola ─────────────────────────────────────────────
-void print_results(double ms_cpu, double ms_gpu, Size frame_size) {
-    cout << "\n" << string(54, '=') << "\n";
-    cout << "  Preprocesamiento CPU vs GPU — OpenCV CUDA\n";
-    cout << "  Frame: " << frame_size.width << "x" << frame_size.height << "\n";
-    cout << string(54, '=') << "\n";
-    cout << left << setw(28) << "Métrica"
-         << right << setw(12) << "CPU"
-         << right << setw(12) << "GPU" << "\n";
-    cout << string(54, '-') << "\n";
-    cout << left << setw(28) << "Tiempo/frame (ms)"
-         << right << setw(12) << fixed << setprecision(2) << ms_cpu
-         << right << setw(12) << ms_gpu << "\n";
-    cout << left << setw(28) << "FPS equivalente"
-         << right << setw(12) << setprecision(1) << 1000.0/ms_cpu
-         << right << setw(12) << 1000.0/ms_gpu << "\n";
-    cout << string(54, '-') << "\n";
-    cout << left << setw(28) << "Aceleración GPU/CPU"
-         << right << setw(12) << ""
-         << right << setw(11) << setprecision(1) << ms_cpu/ms_gpu << "x\n";
-    cout << string(54, '=') << "\n\n";
+// ── Reflexión final ───────────────────────────────────────────────────────────
+static void print_reflexion(double ms_cpu_sd, double ms_gpu_sd,
+                             double ms_cpu_hd, double ms_gpu_hd) {
+    std::cout << "\n" << std::string(54, '=') << "\n";
+    std::cout << "  Reflexion: CPU vs GPU-only\n";
+    std::cout << std::string(54, '=') << "\n";
+    std::cout <<
+        "Pipeline CPU<->GPU (alternado): cada operacion paga\n"
+        "el costo de transferencia PCIe (upload + download).\n"
+        "Con 5 operaciones, se paga 10 transferencias por frame.\n\n"
+        "Pipeline GPU-only: un solo upload al inicio y un solo\n"
+        "download al final, sin importar cuantas operaciones se\n"
+        "encadenen. Esto elimina el cuello de botella de PCIe.\n\n"
+        "Cuándo vale la GPU:\n"
+        "- Cuando las operaciones son suficientemente pesadas\n"
+        "  para amortizar el costo fijo de lanzar cada kernel.\n"
+        "- Cuando se encadenan muchas operaciones (GPU-only\n"
+        "  gana mas cuanto mas larga sea la cadena).\n"
+        "- A mayor resolucion, mayor ventaja de la GPU:\n";
+    std::cout << "  SD 640x480:  aceleracion = "
+              << std::fixed << std::setprecision(2) << ms_cpu_sd / ms_gpu_sd << "x\n";
+    std::cout << "  HD 1280x720: aceleracion = "
+              << ms_cpu_hd / ms_gpu_hd << "x\n";
+    std::cout << std::string(54, '=') << "\n\n";
+}
+
+// ── Benchmark sobre imagen fija ───────────────────────────────────────────────
+static void run_benchmark(const cv::Mat& src) {
+    const int N = 100;
+    fs::create_directories("resultados");
+
+    GpuPipeline gpu;
+
+    // Warmup GPU: la primera llamada compila/inicializa recursos internos del driver
+    double dummy;
+    gpu.process(src, dummy);
+
+    for (const auto& [label, size] : std::vector<std::pair<std::string, cv::Size>>{
+             {"SD 640x480",  cv::Size(640,  480)},
+             {"HD 1280x720", cv::Size(1280, 720)}}) {
+
+        cv::Mat frame;
+        cv::resize(src, frame, size);
+
+        // Benchmark CPU
+        std::vector<double> t_cpu, t_gpu;
+        cv::Mat out_cpu, out_gpu;
+        double ms;
+
+        std::cout << "\nBenchmark CPU  — " << label << " (" << N << " runs)...\n";
+        for (int i = 0; i < N; ++i) {
+            out_cpu = pipeline_cpu(frame, ms);
+            t_cpu.push_back(ms);
+        }
+
+        // Benchmark GPU
+        std::cout << "Benchmark GPU  — " << label << " (" << N << " runs)...\n";
+        for (int i = 0; i < N; ++i) {
+            out_gpu = gpu.process(frame, ms);
+            t_gpu.push_back(ms);
+        }
+
+        double avg_cpu = std::accumulate(t_cpu.begin(), t_cpu.end(), 0.0) / N;
+        double avg_gpu = std::accumulate(t_gpu.begin(), t_gpu.end(), 0.0) / N;
+
+        print_table("Preprocesamiento " + label, avg_cpu, avg_gpu);
+
+        // Guardar mosaico: original | CPU | GPU
+        cv::Mat orig_bgr = frame.clone();
+        cv::Mat mosaic;
+        cv::hconcat(std::vector<cv::Mat>{orig_bgr, out_cpu, out_gpu}, mosaic);
+
+        std::string tag = (size.width == 640) ? "sd" : "hd";
+        std::string path_cpu = "resultados/resultado_cpu_" + tag + ".png";
+        std::string path_gpu = "resultados/resultado_gpu_" + tag + ".png";
+        std::string path_mosaic = "resultados/mosaic_" + tag + ".png";
+        cv::imwrite(path_cpu,    out_cpu);
+        cv::imwrite(path_gpu,    out_gpu);
+        cv::imwrite(path_mosaic, mosaic);
+        std::cout << "Imagenes guardadas: " << path_mosaic << "\n";
+    }
+
+    // Reflexión comparativa entre las dos resoluciones
+    // (re-corremos para tener ambos valores disponibles en esta función — simplificado)
+    cv::Mat sd, hd;
+    double ms_cpu_sd, ms_gpu_sd, ms_cpu_hd, ms_gpu_hd;
+    cv::resize(src, sd, cv::Size(640,  480));
+    cv::resize(src, hd, cv::Size(1280, 720));
+    pipeline_cpu(sd, ms_cpu_sd);  gpu.process(sd, ms_gpu_sd);
+    pipeline_cpu(hd, ms_cpu_hd);  gpu.process(hd, ms_gpu_hd);
+    print_reflexion(ms_cpu_sd, ms_gpu_sd, ms_cpu_hd, ms_gpu_hd);
+}
+
+// ── Modo webcam en vivo ───────────────────────────────────────────────────────
+static void run_webcam(int device) {
+    cv::VideoCapture cap(device);
+    if (!cap.isOpened()) {
+        std::cerr << "No se pudo abrir la camara " << device << "\n";
+        return;
+    }
+
+    std::cout << "Modo webcam — teclas: [g] GPU-only  [c] CPU  [q] salir\n";
+
+    cv::Mat first;
+    cap >> first;
+    if (first.empty()) {
+        std::cerr << "No se pudo leer el primer frame\n";
+        return;
+    }
+    GpuPipeline gpu;
+    // Warmup
+    double dummy;
+    gpu.process(first, dummy);
+
+    bool use_gpu = true;
+    cv::Mat frame, out;
+    double ms;
+
+    while (true) {
+        cap >> frame;
+        if (frame.empty()) break;
+
+        out = use_gpu ? gpu.process(frame, ms) : pipeline_cpu(frame, ms);
+
+        std::string mode  = use_gpu ? "GPU-only" : "CPU";
+        cv::Scalar  color = use_gpu ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
+        std::string label = mode + " | " + std::to_string(static_cast<int>(1000.0 / ms)) + " FPS"
+                            + " | " + std::to_string(static_cast<int>(ms)) + " ms";
+        cv::putText(out, label, cv::Point(10, 30),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, color, 2, cv::LINE_AA);
+
+        cv::imshow("Practica4-1C | [g]=GPU [c]=CPU [q]=salir", out);
+        int key = cv::waitKey(1) & 0xFF;
+        if (key == 'q') break;
+        if (key == 'g') use_gpu = true;
+        if (key == 'c') use_gpu = false;
+    }
+    cv::destroyAllWindows();
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
 int main(int argc, char** argv) {
-    // Verificar CUDA
-    int cuda_devices = cuda::getCudaEnabledDeviceCount();
-    cout << "CUDA devices disponibles: " << cuda_devices << "\n";
-    if (cuda_devices == 0) {
-        cerr << "ERROR: No hay GPU CUDA disponible\n";
+    if (cv::cuda::getCudaEnabledDeviceCount() == 0) {
+        std::cerr << "ERROR: No hay GPU CUDA disponible\n";
         return 1;
     }
-    cuda::printShortCudaDeviceInfo(cuda::getDevice());
+    cv::cuda::printShortCudaDeviceInfo(cv::cuda::getDevice());
 
-    // Fuente de video/imagen
-    string source = (argc > 1) ? argv[1] : "0";  // 0 = webcam por defecto
-    VideoCapture cap;
-
-    if (source == "0")
-        cap.open(0);
-    else
-        cap.open(source);
-
-    if (!cap.isOpened()) {
-        cerr << "No se pudo abrir la fuente: " << source << "\n";
+    if (argc < 2) {
+        std::cerr << "Uso: " << argv[0] << " <imagen.jpg | indice_camara>\n";
         return 1;
     }
 
-    // Warm-up: descartar primeros frames (GStreamer necesita estabilizarse)
-    Mat frame;
-    for (int i = 0; i < 10; i++) {
-        cap >> frame;
-        if (!frame.empty()) break;
+    std::string arg = argv[1];
+    bool is_number  = !arg.empty() &&
+                      std::all_of(arg.begin(), arg.end(), ::isdigit);
+
+    if (is_number) {
+        run_webcam(std::stoi(arg));
+    } else {
+        cv::Mat src = cv::imread(arg);
+        if (src.empty()) {
+            std::cerr << "No se pudo leer la imagen: " << arg << "\n";
+            return 1;
+        }
+        run_benchmark(src);
     }
-    cap.release();
-
-    if (frame.empty()) {
-        cerr << "Frame vacío — no se pudo capturar de la fuente\n";
-        return 1;
-    }
-
-    // Redimensionar para consistencia
-    resize(frame, frame, Size(640, 480));
-
-    cout << "\nEjecutando pipeline CPU (100 runs)...\n";
-    Mat result_cpu;
-    double ms_cpu = pipeline_cpu(frame, result_cpu);
-
-    cout << "Ejecutando pipeline GPU-only (100 runs)...\n";
-    Mat result_gpu;
-    double ms_gpu = pipeline_gpu(frame, result_gpu);
-
-    // Mostrar tabla
-    print_results(ms_cpu, ms_gpu, frame.size());
-
-    // Guardar resultados en carpeta resultados/
-    system("mkdir -p resultados");
-    imwrite("resultados/resultado_cpu.png", result_cpu);
-    imwrite("resultados/resultado_gpu.png", result_gpu);
-    cout << "Imágenes guardadas: resultados/resultado_cpu.png / resultados/resultado_gpu.png\n";
 
     return 0;
 }

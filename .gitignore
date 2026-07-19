@@ -1,4 +1,4 @@
-# Pesos de modelos grandes (descargar manualmente)
+# Pesos de modelos grandes (descargar manualmente desde openmodeldb.info)
 *.pth
 
 # Video de prueba (grabar o descargar manualmente)
