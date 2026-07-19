@@ -1,7 +1,13 @@
-# Pesos de modelos grandes (descargar manualmente desde openmodeldb.info)
+# Modelos base preentrenados (Ultralytics los descarga automaticamente)
+Parte1A/models/yolo11n-seg.pt
+Parte1A/models/yolo26n.pt
+Parte1B/models/yolo12n.pt
+Parte1B/models/yolo26n.pt
+
+# Peso de super resolucion (descargar manualmente desde openmodeldb.info)
 *.pth
 
-# Video de prueba (grabar o descargar manualmente)
+# Videos (grabar o descargar manualmente)
 *.mp4
 *.avi
 *.mkv
@@ -12,6 +18,13 @@ Parte1A/runs/
 # Binario compilado C++
 Parte1C/build/
 
+# Artefactos LaTeX
+*.aux
+*.toc
+*.log
+*.out
+informe/main.pdf
+
 # Python
 __pycache__/
 *.pyc
@@ -20,4 +33,3 @@ __pycache__/
 
 # Archivos temporales
 *.tmp
-*.log

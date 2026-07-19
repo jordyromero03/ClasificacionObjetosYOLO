@@ -1,9 +1,9 @@
-# Práctica 4-1: Visión por Computador con GPU
+# Practica 4-1: Clasificacion de Objetos con Deep Learning y GPU
 
-**Universidad Politécnica Salesiana — Visión por Computador**  
-**Período Lectivo:** Marzo – Agosto 2026  
-**Docente:** Ing. Vladimir Robles Bykbaev  
-**Estudiante:** Jordy Romero
+**Universidad Politecnica Salesiana — Vision por Computador**
+**Periodo Lectivo:** Marzo – Agosto 2026
+**Docente:** Ing. Vladimir Robles Bykbaev
+**Autores:** Michael Lata · Jordy Romero (Grupo 8)
 
 ---
 
@@ -11,32 +11,33 @@
 
 ```
 Practica4-1/
-├── Parte1A/                          # YOLOv11 — Segmentación de señales de tránsito
+├── informe/
+│   ├── main.tex                          # Fuente LaTeX del informe unificado
+│   ├── RomeroJ_lataM_Practica4.pdf       # Informe entregable
+│   └── capturas/                         # Imagenes incluidas en el informe
+│
+├── Parte1A/                              # YOLOv11n-seg — Segmentacion (equipo)
 │   ├── Parte1A_YOLOv11_Segmentacion.ipynb
-│   ├── dataset_traffic/              # Dataset en formato YOLO
+│   ├── dataset_traffic/                  # Dataset YOLO con 3 clases
 │   │   ├── data.yaml
-│   │   ├── train/images/ + labels/
-│   │   ├── valid/images/ + labels/
-│   │   └── test/images/  + labels/
+│   │   ├── train/ valid/ test/
 │   ├── models/
-│   │   ├── yolo11n-seg.pt            # Modelo base preentrenado
-│   │   └── best.pt                   # Modelo entrenado (generado al ejecutar)
-│   ├── resultados/                   # Imágenes de salida generadas
-│   └── runs/                         # Logs y pesos de entrenamiento (YOLO)
-│
-├── Parte1B/                          # YOLOv12 + Real-ESRGAN — GPU vs CPU
-│   ├── Parte1B_YOLOv12_SuperResolucion.ipynb
-│   ├── models/
-│   │   ├── yolo12n.pt
-│   │   └── RealESRGAN_x4plus.pth
+│   │   ├── best.pt                       # Modelo entrenado (incluido)
+│   │   └── best.onnx                     # Exportacion ONNX (incluida)
 │   └── resultados/
-│       └── video_prueba.mp4          # Video de entrada para el benchmark
 │
-└── Parte1C/                          # Pipeline OpenCV CUDA — C++
+├── Parte1B/                              # YOLOv12n+YOLOv26n / RealPLKSR (individual)
+│   ├── Parte1B_YOLOv12_SuperResolucion.ipynb
+│   ├── grabar_video_evidencia.py         # Script de grabacion de evidencia
+│   ├── models/
+│   │   └── 4xNomosWebPhoto_RealPLKSR.pth  # Descargar manualmente (ver abajo)
+│   └── resultados/
+│
+└── Parte1C/                              # Pipeline OpenCV CUDA C++ (individual)
     ├── main.cpp
+    ├── benchmark_cpu.cpp
     ├── CMakeLists.txt
-    ├── build/practica4_1c            # Binario compilado
-    └── resultados/
+    └── build/                            # Generado al compilar (no incluido)
 ```
 
 ---
@@ -44,131 +45,127 @@ Practica4-1/
 ## Requisitos
 
 - Python 3.10+, PyTorch con CUDA, Ultralytics, OpenCV, spandrel, psutil
-- CUDA Toolkit (probado con 13.3), GPU NVIDIA
-- Para Parte1C: CMake, OpenCV5 con módulos CUDA
+- CUDA Toolkit 12+ y GPU NVIDIA
+- Para Parte1C: CMake 3.20+, OpenCV5 compilado con modulos CUDA
+
+Instalar dependencias Python:
+```bash
+pip install ultralytics spandrel psutil opencv-python torch torchvision
+```
 
 ---
 
-## Ejecución
+## Configuracion inicial
 
-### Parte 1A — Segmentación YOLOv11
-Abrir y ejecutar celda por celda en VS Code o JupyterLab:
+### Modelos base YOLO (se descargan automaticamente)
+Los modelos `yolo11n-seg.pt`, `yolo12n.pt` y `yolo26n.pt` no estan en el repositorio.
+Ultralytics los descarga automaticamente al ejecutar los notebooks por primera vez.
+
+### Modelo de super resolucion RealPLKSR (descarga manual)
+El archivo `.pth` no esta en el repositorio por su tamaño. Descargarlo desde:
+
 ```
+https://openmodeldb.info/models/4x-NomosWebPhoto-RealPLKSR
+```
+
+Guardarlo en:
+```
+Parte1B/models/4xNomosWebPhoto_RealPLKSR.pth
+```
+
+---
+
+## Ejecucion
+
+### Parte 1A — Segmentacion YOLOv11n-seg (equipo)
+```bash
+# Abrir y ejecutar en VS Code o JupyterLab
 Parte1A/Parte1A_YOLOv11_Segmentacion.ipynb
 ```
+El modelo `best.pt` ya esta entrenado e incluido. Para reentrenar, ejecutar
+desde la celda de entrenamiento.
 
-### Parte 1B — Benchmark YOLOv12 + Real-ESRGAN
-```
+### Parte 1B — Deteccion y Super Resolucion GPU vs CPU (individual)
+```bash
+# Benchmark completo
 Parte1B/Parte1B_YOLOv12_SuperResolucion.ipynb
+
+# Grabacion de video de evidencia (requiere webcam)
+cd Parte1B
+python3 grabar_video_evidencia.py
 ```
 
-### Parte 1C — Pipeline C++ con CUDA
+### Parte 1C — Pipeline OpenCV CUDA C++ (individual)
 ```bash
 cd Parte1C
-./build/practica4_1c imagen.jpg    # con imagen
-./build/practica4_1c 0             # con webcam
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+
+# Benchmark sobre imagen fija (genera mosaicos en build/resultados/)
+./build/practica4_1c imagen.jpg
+
+# Modo webcam en vivo (g=GPU, c=CPU, q=salir)
+./build/practica4_1c 0
 ```
 
 ---
 
 ## Cambiar el dataset (Parte 1A)
 
-El notebook de Parte1A está diseñado para que sea fácil sustituir el dataset sin modificar el código principal. Solo se tocan dos lugares.
+Para sustituir el dataset sin modificar el codigo principal:
 
-### Opción A — Dataset ya en formato YOLO (recomendado)
-
-Si descargaste un dataset de Roboflow, Kaggle u otra fuente que ya incluye carpetas `train/`, `valid/`, `test/` con subcarpetas `images/` y `labels/`, sigue estos pasos:
-
-1. Copia o mueve el dataset a `Parte1A/` con el nombre que prefieras, por ejemplo `dataset_nuevo/`.
-
-2. Verifica que la estructura interna sea:
+1. Copiar el nuevo dataset a `Parte1A/` con estructura YOLO:
    ```
    dataset_nuevo/
    ├── data.yaml
-   ├── train/
-   │   ├── images/   (archivos .jpg o .png)
-   │   └── labels/   (archivos .txt con anotaciones YOLO)
-   ├── valid/
-   │   ├── images/
-   │   └── labels/
-   └── test/
-       ├── images/
-       └── labels/
+   ├── train/images/  y  train/labels/
+   ├── valid/images/  y  valid/labels/
+   └── test/images/   y  test/labels/
+   ```
+   El formato de etiquetas de segmentacion es poligonal:
+   ```
+   class_id x1 y1 x2 y2 ... xn yn   (coordenadas normalizadas 0-1)
    ```
 
-3. Abre el notebook y modifica la **celda 2** (bloque de configuración):
+2. Editar la celda de configuracion del notebook:
    ```python
-   # Antes:
-   DATASET = 'dataset_traffic'
-   yaml_path = os.path.join(DATASET, 'data.yaml')
-
-   # Después:
-   DATASET = 'dataset_nuevo'
-   yaml_path = os.path.join(DATASET, 'data.yaml')
+   DATASET = 'dataset_nuevo'   # antes: 'dataset_traffic'
    ```
 
-4. Edita `dataset_nuevo/data.yaml` para que el campo `path` apunte a la ubicación absoluta correcta:
+3. Editar `dataset_nuevo/data.yaml`:
    ```yaml
-   path: /home/TU_USUARIO/Documents/.../Parte1A/dataset_nuevo
+   path: /ruta/absoluta/a/Parte1A/dataset_nuevo
    train: train/images
    val:   valid/images
    test:  test/images
-   nc: 3
+   nc: 3                        # numero de clases
    names: ['clase0', 'clase1', 'clase2']
    ```
-   Cambia `nc` y `names` según las clases de tu nuevo dataset.
 
-5. Si el número de clases cambia, elimina `models/best.pt` para que el entrenamiento parta desde el modelo base `yolo11n-seg.pt`.
+4. Borrar `models/best.pt` si cambias el numero de clases, para que el
+   entrenamiento parta desde el modelo base.
 
-6. Ejecuta el notebook desde la celda 1. El resto funciona automáticamente.
-
----
-
-### Opción B — Dataset con anotaciones en otro formato (COCO, Pascal VOC, etc.)
-
-Si tu dataset usa anotaciones JSON (formato COCO) o XML (Pascal VOC), necesitas convertirlas al formato YOLO antes de continuar.
-
-**Conversión desde COCO JSON:**
+Para datasets en formato COCO o Pascal VOC, convertir primero con:
 ```bash
-pip install ultralytics
-yolo data convert --format coco --source dataset_coco/annotations/instances_train.json --output dataset_nuevo/
+# Desde COCO JSON
+yolo data convert --format coco \
+     --source anotaciones/instances_train.json \
+     --output dataset_nuevo/
 ```
 
-O manualmente: cada imagen necesita un archivo `.txt` con una línea por objeto:
-```
-class_id x_center y_center width height
-```
-donde todos los valores están normalizados entre 0 y 1.
-
-Para segmentación (como en este proyecto), el formato es poligonal:
-```
-class_id x1 y1 x2 y2 x3 y3 ... xn yn
-```
-con las coordenadas de cada vértice del polígono normalizadas.
+En Roboflow: seleccionar **Task = Instance Segmentation** y descargar
+en formato **YOLOv8**.
 
 ---
 
-### Formato de etiquetas YOLO segmentación (referencia)
+## Informe
 
-Cada archivo `.txt` en `labels/` corresponde a una imagen y contiene una línea por objeto detectado:
+El informe unificado (Parte 1A equipo + Parte 1B/1C individual por cada autor)
+esta en `informe/RomeroJ_lataM_Practica4.pdf`.
 
+Para recompilar el PDF:
+```bash
+cd informe
+pdflatex main.tex
+pdflatex main.tex   # segunda pasada para referencias cruzadas
 ```
-2 0.512 0.310 0.538 0.290 0.561 0.312 0.545 0.380 0.502 0.375
-```
-
-- El primer número es el `class_id` (entero, empezando en 0).
-- Los pares siguientes son las coordenadas `x y` de los vértices del polígono.
-- Todos los valores están normalizados: divididos por el ancho/alto de la imagen.
-- El archivo `.txt` tiene el mismo nombre que la imagen (cambiando la extensión).
-
----
-
-### Resumen rapido
-
-| Que cambiar         | Donde                                        |
-|---------------------|----------------------------------------------|
-| Nombre del dataset  | Variable `DATASET` en celda 2 del notebook   |
-| Ruta absoluta       | Campo `path:` en `data.yaml`                 |
-| Numero de clases    | Campos `nc:` y `names:` en `data.yaml`       |
-| Modelo base         | `models/yolo11n-seg.pt` (no tocar si nc = 3) |
-| Borrar modelo viejo | `models/best.pt` (si cambias las clases)     |
